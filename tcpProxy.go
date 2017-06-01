@@ -59,11 +59,6 @@ func serverConn(conn net.Conn) error {
 				fmt.Printf("read for local conn failed,err:%v\n", err)
 				return
 			}
-			err = remoteconn.SetWriteDeadline(time.Now().Add(time.Millisecond * 150))
-			if err != nil {
-				fmt.Printf("set write deadline failed,err:%v\n", err)
-				return
-			}
 			n, err = remoteconn.Write(buf[0:n])
 			if err != nil {
 				fmt.Printf("write to remote conn failed,err:%v\n", err)
@@ -76,11 +71,6 @@ func serverConn(conn net.Conn) error {
 		n, err := remoteconn.Read(buf)
 		if err != nil {
 			fmt.Printf("read for remote conn failed,err:%v\n", err)
-			return err
-		}
-		err = conn.SetWriteDeadline(time.Now().Add(time.Millisecond * 150))
-		if err != nil {
-			fmt.Printf("set write deadline failed,err:%v\n", err)
 			return err
 		}
 		n, err = conn.Write(buf[0:n])
