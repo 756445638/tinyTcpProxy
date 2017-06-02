@@ -50,23 +50,19 @@ func serverConn(conn net.Conn) error {
 		return err
 	}
 	defer remoteconn.Close()
-	readok := true
+	ok := true
 	go func() {
 		defer func() {
-			readok = false
+			ok = false
 		}()
-		for {
+		for ok  {
 			buf := make([]byte, 1024)
 			n, err := conn.Read(buf)
 			if err != nil {
 				fmt.Printf("read for local conn failed,err:%v\n", err)
 				return
 			}
-			err = remoteconn.SetWriteDeadline(time.Now().Add(time.Millisecond * 150))
-			if err != nil {
-				fmt.Printf("set write deadline failed,err:%v\n", err)
-				return
-			}
+
 			n, err = remoteconn.Write(buf[0:n])
 			if err != nil {
 				fmt.Printf("write to remote conn failed,err:%v\n", err)
@@ -74,16 +70,14 @@ func serverConn(conn net.Conn) error {
 		}
 
 	}()
+	defer func(){
+		ok = false
+	}()
 	buf := make([]byte, 1024)
-	for readok {
+	for ok {
 		n, err := remoteconn.Read(buf)
 		if err != nil {
 			fmt.Printf("read for remote conn failed,err:%v\n", err)
-			return err
-		}
-		err = conn.SetWriteDeadline(time.Now().Add(time.Millisecond * 150))
-		if err != nil {
-			fmt.Printf("set write deadline failed,err:%v\n", err)
 			return err
 		}
 		n, err = conn.Write(buf[0:n])
@@ -92,6 +86,5 @@ func serverConn(conn net.Conn) error {
 			return err
 		}
 	}
-
 	return nil
 }
